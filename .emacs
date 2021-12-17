@@ -1,14 +1,46 @@
-;;(defvar runemacs/default-font-size 160)
+;(defvar runemacs/default-font-size 160)
 ;; Open in fullscreen
 (custom-set-variables
  ;; custom-set-variables was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
+ '(custom-safe-themes
+   '("691d671429fa6c6d73098fc6ff05d4a14a323ea0a18787daeb93fde0e48ab18b" default))
  '(initial-frame-alist '((fullscreen . maximized)))
  '(package-selected-packages
-   '(smart-tabs-mode lsp-python-ms dap-cpptools-setup dap-mode dired-hide-dotfiles all-the-icons-dired dired-single lsp-ivy lsp-treemacs all-the-icons-ivy company-box org-bullets counsel-projectile evil-collection general rainbow-delimiters doom-modeline use-package rtags projectile org-plus-contrib neotree minimap lsp-ui helm gnu-elpa-keyring-update frame-tabs flycheck evil-visual-mark-mode dracula-theme doom-themes docker ctags-update counsel company clang-format clang-capf auto-complete all-the-icons))
+   '(fzf ripgrep qml-mode dap-mode lsp-ivy lsp-treemacs lsp-ui lsp-mode nyan-mode nerd-icons-dired smart-tabs-mode dap-cpptools-setup dired-hide-dotfiles all-the-icons-dired dired-single all-the-icons-ivy company-box org-bullets counsel-projectile evil-collection general rainbow-delimiters doom-modeline use-package rtags projectile org-plus-contrib neotree minimap helm gnu-elpa-keyring-update frame-tabs flycheck evil-visual-mark-mode dracula-theme doom-themes docker ctags-update counsel company clang-format clang-capf auto-complete all-the-icons))
  '(warning-suppress-types '(((evil-collection)) ((evil-collection)))))
+
+;; Window customization
+(defun efs/default-startup()
+  (toggle-scroll-bar -1)      ;; Disable the scrollbar
+)
+
+(add-to-list 'default-frame-alist '(fullscreen . maximized))
+
+;; Font configuration
+(setq efs/default-font-size 116)
+(setq efs/default-variable-font-size 12)
+
+(defun efs/set-font-faces()
+  (set-face-attribute 'default nil :font "Fira Code Retina" :height efs/default-font-size)
+
+  ;; Set the fixed pitch face
+  (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height efs/default-font-size)
+
+  ;; Set the variable pitch face
+  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height
+		      efs/default-variable-font-size :weight 'regular))
+
+(if (daemonp)
+     (add-hook 'after-make-frame-functions
+     	      (lambda (frame)
+     		(with-selected-frame frame
+     		  (efs/set-font-faces)
+     		  (efs/default-startup))))
+  (efs/set-font-faces)
+  (efs/default-startup))
 
 (setq inhibit-startup-message t)
 
@@ -19,8 +51,10 @@
 
 (menu-bar-mode -1)            ;; Disable the menu bar
 
+(desktop-save-mode 1)
+
 ;; Font Configuration
-;;(set-face-attribute 'default nil :font "Fira Code Regular" :height runemacs/default-font-size)
+;;(set-face-attribute 'default nil :font "Fira Code Retina" :height runemacs/default-font-size)
 
 ;; Set the fixed pitch face
 (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 260)
@@ -63,7 +97,7 @@
 ;; Themes
 (use-package doom-themes)
 
-(load-theme 'doom-one t)
+(load-theme 'doom-gruvbox t)
 (column-number-mode)
 (global-display-line-numbers-mode)
 
@@ -100,7 +134,11 @@
 (use-package doom-modeline
   :ensure t
   :init (doom-modeline-mode 1)
-  :custom (doom-modeline-height 19))
+  :custom
+  (doom-modeline-height 19)
+  (nyan-mode 1)
+  (nyan-animate-nyancat 1)
+  (nyan-bar-length 70))
 
 (use-package rainbow-delimiters
   :hook (prog-mode . rainbow-delimiters-mode))
@@ -171,8 +209,6 @@
 (use-package magit
   :custom
   (magit-display-buffer-function #'magit-display-buffer-same-window-except-diff-v1))
-
-(use-package forge)
 
 ;; Org setup
 (defun os/org-mode-setup ()
@@ -358,10 +394,13 @@
   :init (setq lsp-keymap-prefix "C-c l")
   :hook (
          (c++-mode . lsp)
+	 (c-mode . lsp)
 	 (lsp-mode . os/lsp-mode-setup))
   :config
   (lsp-enable-which-key-integration t)
-  :commands lsp)
+  :commands lsp
+  :bind
+  ("M-RET" . lsp-goto-type-definition))
 
 (use-package lsp-ui
   :hook (lsp-mode . lsp-ui-mode)
@@ -393,28 +432,57 @@
 (use-package flycheck)
 
 ;; DAP
-(use-package dap-mode)
+(use-package dap-mode
+  :defer
+  :config  
+  (setq dap-lldb-debug-program '("/usr/bin/lldb-vscode"))
+  ;; Ask user for executable to debug if not specified explicitly (c++)
+  (setq dap-lldb-debugged-program-function (lambda () (read-file-name "Select file to debug.")))
+
+  ;; Default debug template for (c++)
+  (dap-register-debug-template
+   "C++ LLDB dap"
+   (list :type "lldb-vscode"
+         :cwd nil
+         :args nil
+         :request "launch"
+         :program nil))
+  (defun dap-debug-create-or-edit-json-template ()
+    (interactive)
+    (let ((filename (concat (lsp-workspace-root) "/launch.json"))
+	  (default "~/.emacs.d/default-launch.json"))
+      (unless (file-exists-p filename)
+	(copy-file default filename))
+      (find-file-existing filename)))
+  :custom
+  (dap-ui-mode t)
+  (dap-tooltip-mode t)
+  (tooltip-mode t)
+  (dap-ui-controls-mode t)
+  (dap-auto-configure-mode t)
+  (dap-auto-configure-features
+   '(sessions locals breakpoints expressions tooltip)))
 
 ;; C++
 (require 'dap-lldb)
 
-;; Python
-(use-package python-mode
-  :ensure nil
-  :hook (python-mode . lsp-deferred)
-  :custom
-  (python-shell-interpreter "python3"))
+;; ;; Python
+;; (use-package python-mode
+;;   :ensure nil
+;;   :hook (python-mode . lsp-deferred)
+;;   :custom
+;;   (python-shell-interpreter "python3"))
 
-(use-package lsp-python-ms
-  :ensure t
-  :init (setq lsp-python-ms-auto-install-server t)
-  :hook (python-mode . (lambda ()
-                          (require 'lsp-python-ms))))
+;; (use-package lsp-python-ms
+;;   :ensure t
+;;   :init (setq lsp-python-ms-auto-install-server t)
+;;   :hook (python-mode . (lambda ()
+;;                           (require 'lsp-python-ms))))
 
 
 ;; CMake
-(setq load-path (cons (expand-file-name "~/.emacs.d/elpa/cmake-mode") load-path))
-(require 'cmake-mode)
+;;(setq load-path (cons (expand-file-name "~/.emacs.d/elpa/cmake-mode") load-path))
+;;(require 'cmake-mode)
 
 ;; Dired
 (use-package dired
@@ -436,19 +504,85 @@
    "H" 'dired-hide-dotfiles-mode)
   )
 
-;; Clang-format
-(load "~/.emacs.d/elpa/clang-format.el")
-(global-set-key [C-tab] 'clang-format-region)
-
 ;; Smart tabs
 (use-package smart-tabs-mode)
 
 (smart-tabs-insinuate 'c 'c++)
 
+;; (use-package ligature
+;;   :load-path "~/.emacs.d/elpa/ligature"
+;;   :config
+;;   ;; Enable the "www" ligature in every possible major mode
+;;   (ligature-set-ligatures 't '("www"))
+;;   ;; Enable traditional ligature support in eww-mode, if the
+;;   ;; `variable-pitch' face supports it
+;;   (ligature-set-ligatures 'eww-mode '("ff" "fi" "ffi"))
+;;   ;; Enable all Cascadia and Fira Code ligatures in programming modes
+;;   (ligature-set-ligatures 'prog-mode
+;;                         '(;; == === ==== => =| =>>=>=|=>==>> ==< =/=//=// =~
+;;                           ;; =:= =!=
+;;                           ("=" (rx (+ (or ">" "<" "|" "/" "~" ":" "!" "="))))
+;;                           ;; ;; ;;;
+;;                           (";" (rx (+ ";")))
+;;                           ;; && &&&
+;;                           ("&" (rx (+ "&")))
+;;                           ;; !! !!! !. !: !!. != !== !~
+;;                           ("!" (rx (+ (or "=" "!" "\." ":" "~"))))
+;;                           ;; ?? ??? ?:  ?=  ?.
+;;                           ("?" (rx (or ":" "=" "\." (+ "?"))))
+;;                           ;; %% %%%
+;;                           ("%" (rx (+ "%")))
+;;                           ;; |> ||> |||> ||||> |] |} || ||| |-> ||-||
+;;                           ;; |->>-||-<<-| |- |== ||=||
+;;                           ;; |==>>==<<==<=>==//==/=!==:===>
+;;                           ("|" (rx (+ (or ">" "<" "|" "/" ":" "!" "}" "\]"
+;;                                           "-" "=" ))))
+;;                           ;; \\ \\\ \/
+;;                           ("\\" (rx (or "/" (+ "\\"))))
+;;                           ;; ++ +++ ++++ +>
+;;                           ("+" (rx (or ">" (+ "+"))))
+;;                           ;; :: ::: :::: :> :< := :// ::=
+;;                           (":" (rx (or ">" "<" "=" "//" ":=" (+ ":"))))
+;;                           ;; // /// //// /\ /* /> /===:===!=//===>>==>==/
+;;                           ("/" (rx (+ (or ">"  "<" "|" "/" "\\" "\*" ":" "!"
+;;                                           "="))))
+;;                           ;; .. ... .... .= .- .? ..= ..<
+;;                           ("\." (rx (or "=" "-" "\?" "\.=" "\.<" (+ "\."))))
+;;                           ;; -- --- ---- -~ -> ->> -| -|->-->>->--<<-|
+;;                           ("-" (rx (+ (or ">" "<" "|" "~" "-"))))
+;;                           ;; *> */ *)  ** *** ****
+;;                           ("*" (rx (or ">" "/" ")" (+ "*"))))
+;;                           ;; www wwww
+;;                           ("w" (rx (+ "w")))
+;;                           ;; <> <!-- <|> <: <~ <~> <~~ <+ <* <$ </  <+> <*>
+;;                           ;; <$> </> <|  <||  <||| <|||| <- <-| <-<<-|-> <->>
+;;                           ;; <<-> <= <=> <<==<<==>=|=>==/==//=!==:=>
+;;                           ;; << <<< <<<<
+;;                           ("<" (rx (+ (or "\+" "\*" "\$" "<" ">" ":" "~"  "!"
+;;                                           "-"  "/" "|" "="))))
+;;                           ;; >: >- >>- >--|-> >>-|-> >= >== >>== >=|=:=>>
+;;                           ;; >> >>> >>>>
+;;                           (">" (rx (+ (or ">" "<" "|" "/" ":" "=" "-"))))
+;;                           ;; #: #= #! #( #? #[ #{ #_ #_( ## ### #####
+;;                           ("#" (rx (or ":" "=" "!" "(" "\?" "\[" "{" "_(" "_"
+;;                                        (+ "#"))))
+;;                           ;; ~~ ~~~ ~=  ~-  ~@ ~> ~~>
+;;                           ("~" (rx (or ">" "=" "-" "@" "~>" (+ "~"))))
+;;                           ;; __ ___ ____ _|_ __|____|_
+;;                           ("_" (rx (+ (or "_" "|"))))
+;;                           ;; Fira code: 0xFF 0x12
+;;                           ("0" (rx (and "x" (+ (in "A-F" "a-f" "0-9")))))
+;;                           ;; Fira code:
+;;                           "Fl"  "Tl"  "fi"  "fj"  "fl"  "ft"
+;;                           ;; The few not covered by the regexps.
+;;                           "{|"  "[|"  "]#"  "(*"  "}#"  "$>"  "^="))
+;;   ;; Enables ligature checks globally in all buffers. You can also do it
+;;   ;; per mode with `ligature-mode'.
+;;   (global-ligature-mode t))
 
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(default ((t (:inherit nil :extend nil :stipple nil :background "#282c34" :foreground "#bbc2cf" :inverse-video nil :box nil :strike-through nil :overline nil :underline nil :slant normal :weight normal :height 116 :width normal :foundry "Regular" :family "Fira Code")))))
+ )
