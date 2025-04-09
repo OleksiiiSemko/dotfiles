@@ -1,0 +1,116 @@
+@import "nord.css";
+
+window {
+    background-color: transparent;
+}
+ 
+* {
+    font-family: "Cantarrel";
+    font-size: 12px;
+    font-weight: 600;
+    margin-top: 1px;
+}
+
+/* Left part */
+#window {
+    margin-left: 10px;
+    color: @nord6;
+    font-weight: bold;
+    font-size: 13px;
+    padding: 0px 2px;
+}
+
+#mode {
+    color: @nord0;
+    background-color: @nord13;
+    margin-left: 8px;
+    padding: 0px 3px;
+}
+
+#workspaces {
+    background-color: @nord3;
+    border-radius: 5px;
+}
+
+#workspaces button:hover {
+    box-shadow: inherit;
+    text-shadow: inherit;
+    color: @nord0;
+}
+
+#workspaces button {
+    padding: 0px 8px;
+    color: @nord6;
+}
+
+#workspaces button.focused {
+    color: @nord8;
+    /*background-color: @nord8;*/
+}
+
+/* Right part */
+#pulseaudio,
+#network,
+#cpu,
+#memory,
+#backlight,
+#language,
+#clock,
+#tray {
+    background-color: @nord2;
+    padding: 0px 5px;
+    color: @nord6;
+    margin-top: 5px;
+    margin-bottom: 5px;
+}
+
+#backlight,
+#language,
+#clock,
+#memory,
+#tray,
+#language,
+#pulseaudio {
+    margin-right: 8px;
+    border-top-right-radius: 5px;
+    border-bottom-right-radius: 5px;
+}
+
+#pulseaudio,
+#network,
+#clock,
+#language,
+#tray {
+    border-top-left-radius: 5px;
+    border-bottom-left-radius: 5px;
+}
+
+#pulseaudio.muted {
+    background-color: @nord13;
+    color: @nord3;
+}
+
+#pulseaudio, #backlight {
+    background-color: @nord10;
+}
+
+#network, #cpu, #memory {
+    background-color: @nord3;
+}
+
+#tray {
+    background-color: @nord1;
+}
+
+#network.disabled, 
+#network.disconnected {
+    background-color: @nord13;
+    color: @nord0; 
+}
+
+#tray menu {
+    background-color: @nord2;
+    color: @nord4;
+    padding: 10px 5px;
+    border: 2px solid @nord1;
+}

@@ -1,37 +1,30 @@
-;(defvar runemacs/default-font-size 160)
-;; Open in fullscreen
-(custom-set-variables
- ;; custom-set-variables was added by Custom.
- ;; If you edit it by hand, you could mess it up, so be careful.
- ;; Your init file should contain only one such instance.
- ;; If there is more than one, they won't work right.
- '(custom-safe-themes
-   '("691d671429fa6c6d73098fc6ff05d4a14a323ea0a18787daeb93fde0e48ab18b" default))
- '(initial-frame-alist '((fullscreen . maximized)))
- '(package-selected-packages
-   '(fzf ripgrep qml-mode dap-mode lsp-ivy lsp-treemacs lsp-ui lsp-mode nyan-mode nerd-icons-dired smart-tabs-mode dap-cpptools-setup dired-hide-dotfiles all-the-icons-dired dired-single all-the-icons-ivy company-box org-bullets counsel-projectile evil-collection general rainbow-delimiters doom-modeline use-package rtags projectile org-plus-contrib neotree minimap helm gnu-elpa-keyring-update frame-tabs flycheck evil-visual-mark-mode dracula-theme doom-themes docker ctags-update counsel company clang-format clang-capf auto-complete all-the-icons))
- '(warning-suppress-types '(((evil-collection)) ((evil-collection)))))
-
 ;; Window customization
 (defun efs/default-startup()
   (toggle-scroll-bar -1)      ;; Disable the scrollbar
+  (load-theme 'nord t)
 )
 
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
+(add-to-list 'default-frame-alist '(alpha-background . 95))
 
 ;; Font configuration
 (setq efs/default-font-size 116)
-(setq efs/default-variable-font-size 12)
+(setq efs/default-variable-font-size 13)
 
 (defun efs/set-font-faces()
-  (set-face-attribute 'default nil :font "Fira Code Retina" :height efs/default-font-size)
+  (set-face-attribute 'default nil :font "Victor Mono" :height efs/default-font-size :weight 'semi-bold)
 
   ;; Set the fixed pitch face
-  (set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height efs/default-font-size)
+  (set-face-attribute 'fixed-pitch nil :font "Victor Mono" :height efs/default-font-size :weight 'semi-bold)
+
+  ;; Other atrributes for style
+  (set-face-attribute 'font-lock-comment-face nil :slant 'italic)
+  (set-face-attribute 'font-lock-constant-face nil :slant 'italic)
+  (set-face-attribute 'font-lock-keyword-face nil :slant 'italic)
 
   ;; Set the variable pitch face
-  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height
-		      efs/default-variable-font-size :weight 'regular))
+  (set-face-attribute 'variable-pitch nil :font "Cantarell" :height efs/default-variable-font-size :weight 'regular)
+)
 
 (if (daemonp)
      (add-hook 'after-make-frame-functions
@@ -40,7 +33,8 @@
      		  (efs/set-font-faces)
      		  (efs/default-startup))))
   (efs/set-font-faces)
-  (efs/default-startup))
+  (efs/default-startup)
+)
 
 (setq inhibit-startup-message t)
 
@@ -52,15 +46,6 @@
 (menu-bar-mode -1)            ;; Disable the menu bar
 
 (desktop-save-mode 1)
-
-;; Font Configuration
-;;(set-face-attribute 'default nil :font "Fira Code Retina" :height runemacs/default-font-size)
-
-;; Set the fixed pitch face
-(set-face-attribute 'fixed-pitch nil :font "Fira Code Retina" :height 260)
-
-;; Set the variable pitch face
-(set-face-attribute 'variable-pitch nil :font "Cantarell" :height 140 :weight 'regular)
 
 ;; Reverse colors for the border to have nicer line  
 (set-face-inverse-video-p 'vertical-border nil)
@@ -96,8 +81,8 @@
 
 ;; Themes
 (use-package doom-themes)
+(use-package nord-theme)
 
-(load-theme 'doom-gruvbox t)
 (column-number-mode)
 (global-display-line-numbers-mode)
 
@@ -126,9 +111,11 @@
 ;; need to run the following command interactively so that mode line icons
 ;; display correctly:
 ;;
-;; M-x all-the-icons-install-fonts
+;; M-x nerd-icons-install-fonts
 
-(use-package all-the-icons)
+(use-package nerd-icons)
+
+(use-package nyan-mode)
 
 ;; Customize modeline
 (use-package doom-modeline
@@ -168,13 +155,15 @@
   ([remap describe-variable] . counsel-describe-variable)
   ([remap describe-key] . helpful-key))
 
+(use-package fzf)
+
 ;; Key bindings
 (use-package general
   :config
   (general-create-definer rune/leader-keys
   :keymaps '(normal insert visual emacs)
   :prefix "SPC"
-  :global-prefix "C-SPC")
+  :global-prefix "C-r")
 
   (rune/leader-keys
    "t" '(:ignore t :which-key "treemacs")))
@@ -505,84 +494,77 @@
   )
 
 ;; Smart tabs
-(use-package smart-tabs-mode)
+;;(use-package smart-tabs-mode)
 
-(smart-tabs-insinuate 'c 'c++)
+;(smart-tabs-insinuate 'c 'c++)
 
-;; (use-package ligature
-;;   :load-path "~/.emacs.d/elpa/ligature"
-;;   :config
-;;   ;; Enable the "www" ligature in every possible major mode
-;;   (ligature-set-ligatures 't '("www"))
-;;   ;; Enable traditional ligature support in eww-mode, if the
-;;   ;; `variable-pitch' face supports it
-;;   (ligature-set-ligatures 'eww-mode '("ff" "fi" "ffi"))
-;;   ;; Enable all Cascadia and Fira Code ligatures in programming modes
-;;   (ligature-set-ligatures 'prog-mode
-;;                         '(;; == === ==== => =| =>>=>=|=>==>> ==< =/=//=// =~
-;;                           ;; =:= =!=
-;;                           ("=" (rx (+ (or ">" "<" "|" "/" "~" ":" "!" "="))))
-;;                           ;; ;; ;;;
-;;                           (";" (rx (+ ";")))
-;;                           ;; && &&&
-;;                           ("&" (rx (+ "&")))
-;;                           ;; !! !!! !. !: !!. != !== !~
-;;                           ("!" (rx (+ (or "=" "!" "\." ":" "~"))))
-;;                           ;; ?? ??? ?:  ?=  ?.
-;;                           ("?" (rx (or ":" "=" "\." (+ "?"))))
-;;                           ;; %% %%%
-;;                           ("%" (rx (+ "%")))
-;;                           ;; |> ||> |||> ||||> |] |} || ||| |-> ||-||
-;;                           ;; |->>-||-<<-| |- |== ||=||
-;;                           ;; |==>>==<<==<=>==//==/=!==:===>
-;;                           ("|" (rx (+ (or ">" "<" "|" "/" ":" "!" "}" "\]"
-;;                                           "-" "=" ))))
-;;                           ;; \\ \\\ \/
-;;                           ("\\" (rx (or "/" (+ "\\"))))
-;;                           ;; ++ +++ ++++ +>
-;;                           ("+" (rx (or ">" (+ "+"))))
-;;                           ;; :: ::: :::: :> :< := :// ::=
-;;                           (":" (rx (or ">" "<" "=" "//" ":=" (+ ":"))))
-;;                           ;; // /// //// /\ /* /> /===:===!=//===>>==>==/
-;;                           ("/" (rx (+ (or ">"  "<" "|" "/" "\\" "\*" ":" "!"
-;;                                           "="))))
-;;                           ;; .. ... .... .= .- .? ..= ..<
-;;                           ("\." (rx (or "=" "-" "\?" "\.=" "\.<" (+ "\."))))
-;;                           ;; -- --- ---- -~ -> ->> -| -|->-->>->--<<-|
-;;                           ("-" (rx (+ (or ">" "<" "|" "~" "-"))))
-;;                           ;; *> */ *)  ** *** ****
-;;                           ("*" (rx (or ">" "/" ")" (+ "*"))))
-;;                           ;; www wwww
-;;                           ("w" (rx (+ "w")))
-;;                           ;; <> <!-- <|> <: <~ <~> <~~ <+ <* <$ </  <+> <*>
-;;                           ;; <$> </> <|  <||  <||| <|||| <- <-| <-<<-|-> <->>
-;;                           ;; <<-> <= <=> <<==<<==>=|=>==/==//=!==:=>
-;;                           ;; << <<< <<<<
-;;                           ("<" (rx (+ (or "\+" "\*" "\$" "<" ">" ":" "~"  "!"
-;;                                           "-"  "/" "|" "="))))
-;;                           ;; >: >- >>- >--|-> >>-|-> >= >== >>== >=|=:=>>
-;;                           ;; >> >>> >>>>
-;;                           (">" (rx (+ (or ">" "<" "|" "/" ":" "=" "-"))))
-;;                           ;; #: #= #! #( #? #[ #{ #_ #_( ## ### #####
-;;                           ("#" (rx (or ":" "=" "!" "(" "\?" "\[" "{" "_(" "_"
-;;                                        (+ "#"))))
-;;                           ;; ~~ ~~~ ~=  ~-  ~@ ~> ~~>
-;;                           ("~" (rx (or ">" "=" "-" "@" "~>" (+ "~"))))
-;;                           ;; __ ___ ____ _|_ __|____|_
-;;                           ("_" (rx (+ (or "_" "|"))))
-;;                           ;; Fira code: 0xFF 0x12
-;;                           ("0" (rx (and "x" (+ (in "A-F" "a-f" "0-9")))))
-;;                           ;; Fira code:
-;;                           "Fl"  "Tl"  "fi"  "fj"  "fl"  "ft"
-;;                           ;; The few not covered by the regexps.
-;;                           "{|"  "[|"  "]#"  "(*"  "}#"  "$>"  "^="))
-;;   ;; Enables ligature checks globally in all buffers. You can also do it
-;;   ;; per mode with `ligature-mode'.
-;;   (global-ligature-mode t))
+;; straight.el
+(defvar bootstrap-version)
+(let ((bootstrap-file
+      (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+        "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+        'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
+(use-package app-launcher
+  :straight '(app-launcher :host github :repo "SebastienWae/app-launcher"))
+
+(use-package ligature
+    :straight '(ligature :host github :repo "mickeynp/ligature.el")
+    :config
+  ;; Enable the "www" ligature in every possible major mode
+  ;;(ligature-set-ligatures 't '("www"))
+  ;; Enable traditional ligature support in eww-mode, if the
+  ;; `variable-pitch' face supports it
+  ;;(ligature-set-ligatures 'eww-mode '("ff" "fi" "ffi"))
+  ;; Enable all Victor Mono ligatures in programming modes
+    (ligature-set-ligatures 'prog-mode
+        '("</" "</>" "/>" "~-" "-~" "~@" "<~" "<~>" "<~~" "~>" "~~" "~~>" ">=" "<="
+          "<!--" "|-" "##" "###" "####" "-|" "|->" "<-|" ">-|" "|-<" "|=" "|=>" ">-"
+          "<-" "<--" "-->" "->" "-<" ">->" ">>-" "<<-" "<->" "->>" "-<<" "<-<" "==>" "=>"
+          "=/=" "!==" "!=" "<==" ">>=" "=>>" ">=>" "<=>" "<=<" "=<=" "=>=" "<<=" "=<<"
+          ".-" ".=" "=:=" "=!=" "==" "===" "::" ":=" ":>" ":<" ">:" "<:" "\;\;" "=~" "!~" "::<"
+          "<|" "<|>" "|>" "<>" "<$" "<$>" "$>" "<+" "<+>" "+>" "?=" "/=" "/==" "/\\" "\\/" "__" "&&"
+          "++" "+++"))
+  
+    ;; Enables ligature checks globally in all buffers. You can also do it
+    ;; per mode with `ligature-mode'.
+    (global-ligature-mode t))
+
+(defun emacs-run-launcher ()
+  "Create and select a frame called emacs-run-launcher which consists only of
+    a minibuffer and has specific dimensions. Run counsel-linux-app on that frame,
+    which is an emacs command that prompts you to select an app and open it in a dmenu like behaviour.
+    Delete the frame after that command has exited"
+  (interactive)
+  (with-selected-frame
+      (make-frame '((name . "emacs-run-launcher")
+		    (minibuffer . only)
+		    (fullscreen . 0)      ;; disable fullscreen
+		    (undecoreted . t)     ;; disable title bar
+		    (width . 120)
+		    (height . 11)))
+    (unwind-protect
+	(app-launcher-run-app)
+      (delete-frame))))
+
+(custom-set-variables
+ ;; custom-set-variables was added by Custom.
+ ;; If you edit it by hand, you could mess it up, so be careful.
+ ;; Your init file should contain only one such instance.
+ ;; If there is more than one, they won't work right.
+ )
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- )
+ '(button ((t ("#2E3440" nil "#88C0D0" :background :box nil))))
+ '(font-lock-comment-face ((t (:foreground "#616e88" :slant italic))))
+ '(font-lock-keyword-face ((t (:foreground "#81A1C1" :slant italic)))))

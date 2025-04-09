@@ -1,0 +1,79 @@
+{
+    "layer": "top",
+    "height": 25,
+    "modules-left": ["sway/mode", "sway/window"],
+    "modules-center": ["sway/workspaces"],
+    "modules-right": ["pulseaudio", "backlight", "network", "cpu", "memory", "sway/language", "clock", "tray"],
+    "sway/window": {
+        "max-length": 50
+    },
+    "sway/mode": {
+        "format": "<span style=\"italic\">{}</span>"
+    },
+    "sway/workspaces": {
+        "disable-scroll": true,
+        "all-outputs": true,
+        "format": "{icon}",
+        "format-icons": {
+            "1": "",
+            "2": "",
+            "3": "",
+	    "4": "󰙯",
+            "5": "",
+            "6": "",
+            "8": "",
+            "9": "",
+            "10": "",
+            "11": "",
+            "urgent": "",
+            "default": ""
+        }
+    },
+    "tray": {
+        "icon-size": 18,
+        "spacing": 10
+    },
+    "clock": {
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+        "format": "  {:%Y-%m-%d   %H:%M}"
+    },
+    "cpu": {
+        "format": "  {usage}%",
+        "tooltip": false
+    },
+    "memory": {
+        "format": "  {}%"
+    },
+    "backlight": {
+        "device": "HDMI-A-2",
+        "format": "{icon}  {percent}%",
+        "format-icons": ["", ""]
+    },
+    "network": {
+        // "interface": "wlp2*", // (Optional) To force the use of this interface
+       "format-wifi": "  ({signalStrength}%)",
+       //"format-ethernet": "{ifname}: {ipaddr}/{cidr} 󰈀",
+       "format-ethernet": "󰈀  {ipaddr}",
+       "format-linked": "  {ifname} (No IP)",
+       "format-disconnected": "⚠  Disconnected"
+    },
+    "pulseaudio": {
+        // "scroll-step": 1, // %, can be a float
+        "format": "{icon}  {volume}%      {format_source}",
+        "format-bluetooth": "{volume}% {icon} {format_source}",
+        "format-bluetooth-muted": "  {icon}󰂲  {format_source}",
+        "format-muted": "   {format_source}",
+        "format-source": "  {volume}%",
+        "format-source-muted": "",
+        "format-icons": {
+            "headphone": "",
+            "hands-free": "",
+            "headset": "",
+            "phone": "",
+            "portable": "",
+            "car": "",
+            "default": ["", "", ""]
+        },
+        "on-click": "pavucontrol",
+    },
+}
